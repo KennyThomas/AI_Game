@@ -1,0 +1,43 @@
+FUNCTION_BLOCK FuzzyNetEnemy
+
+VAR_INPUT         (*Each enemy has a value for Strength- Range is (0..100)  and Health- Range is (0..100)*)
+ Health : REAL;
+ Strength : REAL;
+END_VAR
+
+
+VAR_OUTPUT    (*Output will be a command e.g Attack, Run , Roam*)
+ Command : REAL;
+END_VAR
+
+FUZZIFY Health
+ TERM Critical := (0, 1) (20, 1) (50, 0);        (*Critical health is less than 50*)
+ TERM MinorInjuries := (30, 0) (50, 1) (80, 0);  (*MinorInjuries  is less than 80 but above 50*)
+ TERM Healthy := (50, 0) (80, 1) (100, 1);       (*Healthy  is above 80 or 100*)
+END_FUZZIFY
+
+FUZZIFY Strength
+ TERM Weak := (0, 1) (30, 0);     (*Weak is below 30*)
+ TERM Normal := (35, 0) (50, 1);  (*Normal is below 50 but above 35*)
+ TERM Strong := (50, 0) (100, 1); (*Strong is below 100 but above 50*)
+END_FUZZIFY
+
+DEFUZZIFY Command
+ TERM Run := (0, 1) (45, 0);      (*Run is  below 45*)
+ TERM Roam := (50, 1) (100, 0);   (*Roam 50*)
+ TERM Attack := (40, 0) (100, 1); (*Attack is 100*)
+ METHOD : COG;                    (*Center of Gravity*)
+ DEFAULT := 0;
+END_DEFUZZIFY
+
+
+RULEBLOCK No1            (*Rules used*)
+ AND : MIN;
+ ACT : MIN;
+ ACCU : MAX;
+ RULE 1 : IF Health IS Healthy AND Strength IS Strong THEN Command IS Attack;
+ RULE 2 : IF Health IS MinorInjuries AND Strength IS Normal THEN Command IS Roam;
+ RULE 3 : IF Health IS Critical AND Strength IS Weak THEN Command IS Run;
+
+END_RULEBLOCK
+END_FUNCTION_BLOCK
